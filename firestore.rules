@@ -1,0 +1,166 @@
+rules_version = '2';
+service cloudfire store {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Helper functions for incoming/existing data structures
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation functions for each collection
+    function isValidMedicine(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.code is string && data.code.size() <= 100 &&
+             data.category is string && data.category.size() <= 100 &&
+             data.buyPrice is number && data.buyPrice >= 0 &&
+             data.sellPrice is number && data.sellPrice >= 0 &&
+             data.stock is number && data.stock >= 0 &&
+             data.minStock is number && data.minStock >= 0 &&
+             data.expiryDate is string &&
+             data.location is string && data.location.size() <= 100;
+    }
+
+    function isValidCustomer(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.phone is string && data.phone.size() <= 25 &&
+             data.birthdate is string &&
+             data.points is number && data.points >= 0 &&
+             data.joinedAt is string;
+    }
+
+    function isValidCheckup(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.date is string &&
+             data.systolic is number && data.systolic >= 0 &&
+             data.diastolic is number && data.diastolic >= 0 &&
+             data.bloodSugar is number && data.bloodSugar >= 0 &&
+             data.cholesterol is number && data.cholesterol >= 0 &&
+             data.weight is number && data.weight >= 0 &&
+             data.complaints is string;
+    }
+
+    function isValidSupplier(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.company is string && data.company.size() <= 200 &&
+             data.phone is string && data.phone.size() <= 25 &&
+             data.debt is number && data.debt >= 0;
+    }
+
+    function isValidStockInflow(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.medicineId is string && data.medicineId.size() <= 128 &&
+             data.supplierId is string && data.supplierId.size() <= 128 &&
+             data.quantity is number && data.quantity >= 0 &&
+             data.arrivalDate is string &&
+             data.cost is number && data.cost >= 0 &&
+             data.paymentStatus in ['Lunas', 'Hutang'];
+    }
+
+    function isValidSale(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.invoiceNumber is string && data.invoiceNumber.size() <= 100 &&
+             data.date is string &&
+             data.items is list && data.items.size() > 0 &&
+             data.subtotal is number && data.subtotal >= 0 &&
+             data.discount is number && data.discount >= 0 &&
+             data.total is number && data.total >= 0 &&
+             data.paymentMethod is string &&
+             data.cashierName is string && data.cashierName.size() <= 100;
+    }
+
+    function isValidDoctor(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.specialization is string && data.specialization.size() <= 200 &&
+             data.phone is string && data.phone.size() <= 25 &&
+             data.scheduleHours is string && data.scheduleHours.size() <= 100 &&
+             data.dutyDays is list && data.dutyDays.size() <= 7 &&
+             data.status in ['Aktif', 'Istirahat', 'Libur'] &&
+             (!('gender' in data) || data.gender in ['Laki-laki', 'Perempuan']);
+    }
+
+    function isValidSetting(data) {
+      return data.companyName is string && data.companyName.size() <= 200 &&
+             data.companyLogoType is string && data.companyLogoType.size() <= 100 &&
+             data.theme is string && data.theme.size() <= 50 &&
+             data.printerConnected is bool &&
+             data.printerName is string;
+    }
+
+    // Collection Rules Mapping
+    match /medicines/{medicineId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(medicineId) && isValidMedicine(incoming());
+      allow update: if isSignedIn() && isValidId(medicineId) && isValidMedicine(incoming());
+      allow delete: if isSignedIn() && isValidId(medicineId);
+    }
+
+    match /customers/{customerId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(customerId) && isValidCustomer(incoming());
+      allow update: if isSignedIn() && isValidId(customerId) && isValidCustomer(incoming());
+      allow delete: if isSignedIn() && isValidId(customerId);
+
+      match /checkups/{checkupId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isValidId(checkupId) && isValidCheckup(incoming());
+        allow update: if isSignedIn() && isValidId(checkupId) && isValidCheckup(incoming());
+        allow delete: if isSignedIn() && isValidId(checkupId);
+      }
+    }
+
+    match /suppliers/{supplierId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(supplierId) && isValidSupplier(incoming());
+      allow update: if isSignedIn() && isValidId(supplierId) && isValidSupplier(incoming());
+      allow delete: if isSignedIn() && isValidId(supplierId);
+    }
+
+    match /stockInflows/{inflowId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(inflowId) && isValidStockInflow(incoming());
+      allow update: if isSignedIn() && isValidId(inflowId) && isValidStockInflow(incoming());
+      allow delete: if isSignedIn() && isValidId(inflowId);
+    }
+
+    match /sales/{saleId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(saleId) && isValidSale(incoming());
+      allow update: if isSignedIn() && isValidId(saleId) && isValidSale(incoming());
+      allow delete: if isSignedIn() && isValidId(saleId);
+    }
+
+    match /doctors/{doctorId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(doctorId) && isValidDoctor(incoming());
+      allow update: if isSignedIn() && isValidId(doctorId) && isValidDoctor(incoming());
+      allow delete: if isSignedIn() && isValidId(doctorId);
+    }
+
+    match /settings/app {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidSetting(incoming());
+    }
+  }
+}

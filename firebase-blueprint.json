@@ -1,0 +1,178 @@
+{
+  "entities": {
+    "medicine": {
+      "title": "Medicine",
+      "description": "Information about a medicine product",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "code": { "type": "string" },
+        "category": { "type": "string" },
+        "buyPrice": { "type": "number" },
+        "sellPrice": { "type": "number" },
+        "stock": { "type": "number" },
+        "minStock": { "type": "number" },
+        "expiryDate": { "type": "string" },
+        "location": { "type": "string" },
+        "supplierId": { "type": "string" }
+      },
+      "required": ["id", "name", "code", "category", "buyPrice", "sellPrice", "stock", "minStock", "expiryDate", "location"]
+    },
+    "customer": {
+      "title": "Customer",
+      "description": "Patient or customer registry with checkup records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "birthdate": { "type": "string" },
+        "points": { "type": "number" },
+        "joinedAt": { "type": "string" },
+        "medicalHistory": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["id", "name", "phone", "birthdate", "points", "joinedAt"]
+    },
+    "checkup": {
+      "title": "Checkup",
+      "description": "Patient health checkup record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "systolic": { "type": "number" },
+        "diastolic": { "type": "number" },
+        "bloodSugar": { "type": "number" },
+        "cholesterol": { "type": "number" },
+        "weight": { "type": "number" },
+        "complaints": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "date", "systolic", "diastolic", "bloodSugar", "cholesterol", "weight", "complaints"]
+    },
+    "supplier": {
+      "title": "Supplier",
+      "description": "Sales representative or drug supplier company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "company": { "type": "string" },
+        "phone": { "type": "string" },
+        "debt": { "type": "number" }
+      },
+      "required": ["id", "name", "company", "phone", "debt"]
+    },
+    "stockInflow": {
+      "title": "StockInflow",
+      "description": "Record of incoming stock ordered from suppliers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "medicineId": { "type": "string" },
+        "supplierId": { "type": "string" },
+        "quantity": { "type": "number" },
+        "arrivalDate": { "type": "string" },
+        "cost": { "type": "number" },
+        "paymentStatus": { "type": "string", "enum": ["Lunas", "Hutang"] }
+      },
+      "required": ["id", "medicineId", "supplierId", "quantity", "arrivalDate", "cost", "paymentStatus"]
+    },
+    "sale": {
+      "title": "Sale",
+      "description": "Sales transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "date": { "type": "string" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "total": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "cashierName": { "type": "string" },
+        "whatsappStatus": { "type": "string" }
+      },
+      "required": ["id", "invoiceNumber", "date", "items", "subtotal", "discount", "total", "paymentMethod", "cashierName"]
+    },
+    "doctor": {
+      "title": "Doctor",
+      "description": "Doctor profile and on-duty roster details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "specialization": { "type": "string" },
+        "phone": { "type": "string" },
+        "scheduleHours": { "type": "string" },
+        "dutyDays": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "status": { "type": "string", "enum": ["Aktif", "Istirahat", "Libur"] },
+        "gender": { "type": "string", "enum": ["Laki-laki", "Perempuan"] }
+      },
+      "required": ["id", "name", "specialization", "phone", "scheduleHours", "dutyDays", "status"]
+    },
+    "setting": {
+      "title": "Setting",
+      "description": "Application settings configurations",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "companyLogoType": { "type": "string" },
+        "companyLogoUrl": { "type": "string" },
+        "theme": { "type": "string" },
+        "printerConnected": { "type": "boolean" },
+        "printerName": { "type": "string" },
+        "whatsappGatewayUrl": { "type": "string" },
+        "whatsappApiKey": { "type": "string" },
+        "whatsappAutoPromo": { "type": "boolean" },
+        "whatsappAutoReceipt": { "type": "boolean" },
+        "whatsappAutoStockAlert": { "type": "boolean" }
+      },
+      "required": ["companyName", "companyLogoType", "theme", "printerConnected", "printerName"]
+    }
+  },
+  "firestore": {
+    "/medicines/{medicineId}": {
+      "schema": "medicine",
+      "description": "Pharmacy medicines stock catalog"
+    },
+    "/customers/{customerId}": {
+      "schema": "customer",
+      "description": "Customers / patients database"
+    },
+    "/customers/{customerId}/checkups/{checkupId}": {
+      "schema": "checkup",
+      "description": "Periodic patient medical and health checkups history"
+    },
+    "/suppliers/{supplierId}": {
+      "schema": "supplier",
+      "description": "Medicines supplier contact and debt registry"
+    },
+    "/stockInflows/{inflowId}": {
+      "schema": "stockInflow",
+      "description": "Stock procurement incoming ledger"
+    },
+    "/sales/{saleId}": {
+      "schema": "sale",
+      "description": "Customer purchase transaction records"
+    },
+    "/doctors/{doctorId}": {
+      "schema": "doctor",
+      "description": "Clinic doctors and shift schedule profiles"
+    },
+    "/settings/app": {
+      "schema": "setting",
+      "description": "Universal app configuration variables"
+    }
+  }
+}

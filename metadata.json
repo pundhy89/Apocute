@@ -1,0 +1,6 @@
+{
+  "name": "ApoCute",
+  "description": "Aplikasi Apotek & Kasir Pintar dengan UI modern, manajemen stok real-time, cetak struk Bluetooth, barcode scanner, dan 5 pilihan tema cantik.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
